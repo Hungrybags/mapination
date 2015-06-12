@@ -1,0 +1,629 @@
+var servicesMarker = [],
+    propertyMarker = [],
+    content = [];
+(function($) {
+    $.fn.initApp = function(options) {
+            var settings = $.extend({
+                    address: '', //Name of the area or locality, So map can display.
+                    propertyLocation: '', 	//Pass JSON String With some property Deatils you want to show with property location marker E.G
+											//["
+											//{lat: '28.410130', 							Latitude Value
+											//lng: '77.344509',								Longtitute Value
+											//thumb: 'pic1',								Image Source/Name/path
+											//bhk: '1 bhk',									BHK info
+											//price: '29 Lacs',								Price of property
+											//Address: 'A-23, 2nd Floor, Triputi Complex',	Address of Property
+											//provider: 'Agent'								Provider Agent/Broker/Owner},{lat: '28.422019448582333',lng: '77.34727962491456',thumb: 'pic2',bhk: '2 bhk',price: '30 Lacs',Address: 'H-23, 1st Floor, Hemant Sadan',provider: 'Paras Buildtech'}],
+
+                    lat: '', //Give Latitude Value if do't have Address
+                    lang: '', //Give Longtitude Value if do't have Address
+                    addressmarker: false, //Set it True if want to show Marker on the given address.
+                    ZOOMS: 14, //Set map zoom value
+					radius:1250, //Set Radius for google services icon (in meters)
+					servicesOpton: ['school','restaurant','hospital','bus_station','park','bank','movie_theater','gym','atm','place_of_worship'],
+					scrollable:false
+                }, options),
+                geocoder = new google.maps.Geocoder(),
+                map, latLang = new google.maps.LatLng(settings.lat, settings.lang),
+                totalProperty = 1,
+                propertyMarker = [],
+                cnt = 0,
+                markersArray = [];
+            //console.log(servicesMarker);
+			
+            return this.each(function() {
+				//console.log('hello');
+                var $this = this;
+                if (settings.address == '') {
+                    map = new google.maps.Map($this, {
+                        mapTypeId: google.maps.MapTypeId.TERRAIN,
+                        center: latLang,
+                        scrollwheel: settings.scrollable,
+                        zoom: settings.ZOOMS
+                    });
+                    marker = new google.maps.Marker({
+                        position: latLang,
+                        map: map,
+                        icon: 'images/home.png',
+                        draggable: false,
+                        visible: true,
+                        title: 'marker_' + settings.cnt,
+                    });
+					//console.log('h '+settings.radius);
+					if (settings.propertyLocation != '') {
+                                    for (var key in settings.propertyLocation) {
+                                        $.fn.initApp.locateProperties({
+                                            lat: settings.propertyLocation[key].lat,
+                                            lng: settings.propertyLocation[key].lng,
+                                            thumb: settings.propertyLocation[key].thumb,
+                                            details: settings.propertyLocation[key].bhk,
+                                            price: settings.propertyLocation[key].price,
+                                            provider: settings.propertyLocation[key].provider,
+                                            totalProperty: settings.propertyLocation.length,
+                                            map: map,
+                                            cnt: key,
+                                            servicesMarker: servicesMarker,
+                                            $this: $this,
+                                            propertyMarker: propertyMarker,
+											radius:settings.radius,
+                                            content: content,
+											servicesOpton:settings.servicesOpton
+                                        });
+                                    }
+                                }
+                } else {
+                    //console.log(settings.address);
+                    geocoder.geocode({
+                        address: settings.address
+                    }, function(results, status) {
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            var latLang = new google.maps.LatLng(results[0].geometry.location.lat(), results[0].geometry.location.lng());
+                            //console.log(results[0]);
+                            if (results[0]) {
+                                map = new google.maps.Map($this, {
+                                    mapTypeId: google.maps.MapTypeId.TERRAIN,
+                                    center: latLang,
+                                    scrollwheel: settings.scrollable,
+                                });
+                                //console.log(JSON.stringify(results[0]));
+                                 /*var southWest = new google.maps.LatLng(results[0].geometry.viewport.Ea.A, results[0].geometry.viewport.wa.j);
+                                 var northEast = new google.maps.LatLng(results[0].geometry.viewport.Ea.j, results[0].geometry.viewport.wa.A);
+                                 var bounds = new google.maps.LatLngBounds(southWest, northEast);
+                                 map.fitBounds(bounds);*/
+
+                                /*var southWest = new google.maps.LatLng(results[0].geometry.viewport.Da.A, results[0].geometry.viewport.va.j);
+                                var northEast = new google.maps.LatLng(results[0].geometry.viewport.Da.j, results[0].geometry.viewport.va.A);
+                                var bounds = new google.maps.LatLngBounds(southWest, northEast);*/
+								
+								var southWest = new google.maps.LatLng(results[0].geometry.viewport.za.A, results[0].geometry.viewport.qa.j);
+                                var northEast = new google.maps.LatLng(results[0].geometry.viewport.za.j, results[0].geometry.viewport.qa.A);
+                                var bounds = new google.maps.LatLngBounds(southWest, northEast);
+                                map.fitBounds(bounds);
+								
+                                if (settings.addressmarker) {
+                                    marker = new google.maps.Marker({
+                                        position: latLang,
+                                        map: map,
+                                        icon: '../images/home.png',
+                                        draggable: false,
+                                        visible: true,
+                                        title: 'marker_' + settings.cnt,
+                                    });
+                                }
+                                //console.log(settings.propertyLocation[0].thumb+' | '+settings.propertyLocation[0].bhk+' | '+settings.propertyLocation[0].price+' | '+settings.propertyLocation[0].Address+' | '+settings.propertyLocation[0].provider); 
+								//console.log('in'+JSON.stringify(settings.propertyLocation[0].bhk));
+                                if (settings.propertyLocation != '') {
+                                    for (var key in settings.propertyLocation) {
+                                        $.fn.initApp.locateProperties({
+                                            lat: settings.propertyLocation[key].lat,
+                                            lng: settings.propertyLocation[key].lng,
+                                            thumb: settings.propertyLocation[key].thumb,
+                                            details: settings.propertyLocation[key].bhk,
+                                            price: settings.propertyLocation[key].price,
+                                            provider: settings.propertyLocation[key].provider,
+                                            totalProperty: settings.propertyLocation.length,
+                                            map: map,
+                                            cnt: key,
+                                            servicesMarker: servicesMarker,
+                                            $this: $this,
+                                            propertyMarker: propertyMarker,
+                                            content: content,
+											radius:settings.radius,
+											servicesOpton:settings.servicesOpton
+                                        });
+                                    }
+                                }
+                                //locateProperty(settings.propertyLocation, map, propertyMarker, cnt, markersArray);
+                                //$.fn.initApp.locateProperties( settings.propertyLocation,map );
+                            } else {
+                                alert("No results found");
+                            }
+                        } else {
+                            alert("Geocoder failed due to: " + status);
+                        }
+                    });
+
+                }
+            });
+        } //pic1 1 bhk 29 Lacs A-23, 2nd Floor, Triputi Complex Agent
+    $.fn.initApp.locateProperties = function(opt) {
+        var settings = $.extend({
+                lat: 28.410130,
+                lng: 77.344509,
+                details: '3 bhk',
+                thumb: 'thumb_1',
+                price: '29 Lacs',
+                Address: 'A-23, 2nd Floor, Triputi Complex',
+                provider: 'Agent',
+				radius:1250,
+                totalProperty: 1,
+                imageUrl: 'images/home.png',
+                icon2: 'images/home_hover.png',
+                map: '',
+                cnt: 1,
+                servicesMarker: servicesMarker,
+                $this: this,
+                poly: new google.maps.Polyline({
+                    strokeColor: '#4986E7',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 3,
+                    path: [],
+                    map: null
+                }),
+                path: '',
+                propertyMarker: propertyMarker,
+                content: [],
+				servicesOpton:[]
+            }, opt),
+            lat, lng;
+        var markposition = new google.maps.LatLng(settings.lat, settings.lng);
+
+        marker = new google.maps.Marker({
+            position: markposition,
+            map: settings.map,
+            icon: settings.imageUrl,
+            draggable: false,
+            visible: true,
+            title: 'marker_' + settings.cnt,
+        });
+        //console.log(JSON.stringify(settings.servicesMarker));
+        var myInfowindow = new google.maps.InfoWindow();
+        var chkbox = document.querySelectorAll('.chkbox');
+        myInfowindow.setContent(settings.details);
+
+        //myInfowindow.open(map, marker);
+        settings.propertyMarker.push(marker);
+        //console.log(settings.propertyMarker.length);
+        var content = '<div style="font-size:13px;width:250px;"><div style="width:35%; float:left;"><img src="'+settings.thumb + '" width="85" height="63"></div><div style="width:62%; float:right;">' + settings.details + '<br><strong style="font-size:12px; line-height:30p">&#8377;' + settings.price + '</strong></div><div style="clear:both;"></div></div>';
+        settings.content.push(content);
+        //console.log(settings.content.length);
+        var infowindow = new google.maps.InfoWindow();
+        google.maps.event.addListener(marker, 'mouseover', function() {
+            TRUE = true;
+            this.setIcon(settings.icon2);
+            infowindow.setContent(content);
+            infowindow.open(settings.map, this);
+            // myInfowindow.close();
+        });
+        google.maps.event.addListener(marker, 'mouseout', function() {
+            if (TRUE) {
+                this.setIcon(settings.imageUrl);
+                infowindow.close();
+                // myInfowindow.open(settings.map, this);
+            }
+        });
+        google.maps.event.addListener(marker, 'click', function() {
+            $('#result').children().remove();
+            settings.path = settings.poly.getPath();
+            $(chkbox).prop('checked', false);
+            $('#get_result').animate({
+                right: '-400px',
+                bottom: '-130px'
+            }, 600, function() {
+                $('#get_result').children().remove();
+                $('#get_result').append(content);
+                $('#get_result').animate({
+                    right: '-1px',
+                    bottom: '-130px'
+                }, 600);
+            });
+
+            $('#result').animate({
+                left: '-320px'
+            }, 100);
+
+            $('.opacity').hide()
+			$('.chooseOptions').removeClass('fadeText');
+            marker.setIcon(settings.imageUrl);
+            for (var l in settings.propertyMarker) {
+                settings.propertyMarker[l].setIcon(settings.imageUrl);
+            }
+            TRUE = false;
+            this.setIcon(settings.icon2);
+            //console.log(this);
+            lats = this.position.A.toString();
+            lngs = this.position.F.toString();
+            settings.map.panTo(new google.maps.LatLng(lats, lngs));
+            //console.log(content);
+
+            infowindow.close();
+            //console.log(settings.servicesMarker);
+            if (settings.servicesMarker) {
+                for (i in settings.servicesMarker) {
+                    settings.servicesMarker[i].setVisible(false)
+                }
+                settings.servicesMarker.length = 0;
+            }
+            //poly.setPath([]);
+            //poly.setMap(null);
+        });
+        if ((settings.cnt) == (settings.totalProperty - 1)) {
+            var cell = document.querySelectorAll('.textMarker');
+            for (var i = 0; i < cell.length; i++) {
+                cell[i].addEventListener('click', function() {
+                    ID = this.id;
+                    for (var d in settings.propertyMarker) {
+                        settings.propertyMarker[d].setIcon(settings.imageUrl);
+                        var markerID = settings.propertyMarker[d].title;
+                        if (markerID == ID) {
+                            $('#result').children().remove();
+                            settings.path = settings.poly.getPath();
+                            $(chkbox).prop('checked', false);
+                            $('#get_result').animate({
+                                right: '-400px',
+                                bottom: '-130px'
+                            }, 600, function() {
+                                $('#get_result').children().remove();
+                                $('#get_result').append(settings.content[d])
+                                $('#get_result').animate({
+                                    right: '-1px',
+                                    bottom: '-130px'
+                                }, 600);
+                            });
+                            $('#result').animate({
+                                left: '-320px'
+                            }, 100);
+                            $('.chooseOptions').show();
+                            for (var l in settings.propertyMarker) {
+                                settings.propertyMarker[l].setIcon(settings.imageUrl);
+                            }
+                            settings.propertyMarker[d].setIcon(settings.icon2);
+                            TRUE = false;
+                            lats = settings.propertyMarker[d].position.A.toString();
+                            lngs = settings.propertyMarker[d].position.F.toString();
+                            settings.map.panTo(new google.maps.LatLng(lats, lngs));;
+                            infowindow.close();
+                            if (settings.servicesMarker) {
+                                for (i in settings.servicesMarker) {
+                                    settings.servicesMarker[i].setVisible(false)
+                                }
+                                settings.servicesMarker.length = 0;
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        //console.log(settings.cnt+' | '+settings.totalProperty);
+        if ((settings.cnt) == (settings.totalProperty - 1)) {
+			
+            for (var i = 0; i < chkbox.length; i++) {
+				$t = chkbox[i];
+				if(chkbox[i].id!=settings.servicesOpton[i]){
+					$($t).parent().css('display','none');
+					}
+				
+                chkbox[i].addEventListener('click', function() {
+                    ID = this.id;
+                    if (i = chkbox.length) {
+                        if (settings.servicesMarker) {
+                            for (i in settings.servicesMarker) {
+                                settings.servicesMarker[i].setVisible(false)
+                            }
+                            settings.servicesMarker.length = 0;
+                        }
+                        //console.log(settings.servicesMarker.length);
+                        $('#result').animate({
+                            left: '-320px'
+                        }, 100);
+                        //console.log(settings.poly);
+                        settings.poly.setOptions({
+                            strokeWeight: 0
+                        });
+                        $.fn.initApp.searchServices({
+                            map: settings.map,
+                            lat: lats,
+                            lng: lngs,
+                            type: ID,
+                            servicesMarker: settings.servicesMarker,
+                            icon: 'images/' + ID + '.png',
+                            infowindow: myInfowindow,
+                            poly: settings.poly,
+                            path: settings.path,
+							radius:settings.radius
+                        });
+                    }
+                });
+            }
+        }
+    };
+    $.fn.initApp.selectmarker = function(opt) {
+        var settings = $.extend({
+            chkbox: document.querySelectorAll('.chkbox'),
+            content: '',
+        });
+    }
+    $.fn.initApp.searchServices = function(opt) {
+        var settings = $.extend({
+                type: 'school',
+                icon: 'school',
+                lat: 28.410130,
+                lng: 77.344509,
+                radius: 500,
+                setMark: false,
+                servicesMarker: servicesMarker,
+                service: new google.maps.DirectionsService(),
+                distanceService: new google.maps.DistanceMatrixService(),
+                origin1: new google.maps.LatLng(28.410130, 77.344509),
+                //infowindow:new google.maps.InfoWindow(), 
+                map: '',
+                poly: '',
+                path: '',
+                contents: '',
+            }, opt),
+            latlng = new google.maps.LatLng(settings.lat, settings.lng),
+            servicesMarker = new google.maps.Marker({
+                visible: false,
+            }),
+            request = {
+                location: latlng,
+                radius: settings.radius,
+                types: [settings.type] //e.g. school, restaurant,bank,bar,city_hall,gym,night_club,park,zoo 
+            },
+            service = new google.maps.places.PlacesService(settings.map);
+			//console.log(settings.radius);
+        //console.log(settings);
+        //settings.origin1 
+        var content = '';
+        $('#result').children().remove();
+        service.search(request, function(results, status) {
+            if (status == google.maps.places.PlacesServiceStatus.OK) {
+                //console.log(JSON.stringify(results.html_attributions='';));
+                results.html_attributions = '';
+                for (var i = 0; i < results.length; i++) {
+                    results[i].html_attributions = '';
+                    servicesMarker = new google.maps.Marker({
+                        visible: true,
+                        map: settings.map,
+                        position: results[i].geometry.location,
+                        icon: settings.icon,
+                        visible: true,
+                        title: 'servicestMarker_' + i,
+                        name: results[i].name,
+                        vicinity: results[i].vicinity,
+                    });
+                    settings.servicesMarker.push(servicesMarker);
+                    if (results[i].rating == undefined) {
+                        results[i].rating = 'Not Available';
+                    }
+                    /*                            settings.distanceService.getDistanceMatrix({
+                                                    origins: [latlng],
+                                                    destinations: [results[i].geometry.location],
+                                                    travelMode: google.maps.TravelMode.DRIVING,
+                                                    unitSystem: google.maps.UnitSystem.METRIC,
+                                                    avoidHighways: false,
+                                                    avoidTolls: false
+                                                }, function(response, status) {
+                                                    if (status == google.maps.DistanceMatrixStatus.OK) {
+                                                        var origins = response.originAddresses;
+                                                        var destinations = response.destinationAddresses;
+                                                        for (var s = 0; s < origins.length; s++) {
+                                                            var res = response.rows[s].elements;
+                                                            for (var j = 0; j < res.length; j++) {*/
+                    //content += '<div class="servicestMarker contentdata mouse_over font_size_12" id="servicestMarker' + i + '">         <div class="row"><div class="grid_235"><b>Name: </b></div><div class="grid_745">' + results[i].name + '</div><div class="clear"></div></div>         <div class="row"><div class="grid_235"><b>Address: </b></div><div class="grid_745">' + results[i].vicinity + '</div><div class="clear"></div></div>         <div class="row"><div class="grid_235"><b>Rating: </b></div><div class="grid_745 pad_t_2"><span class="text_color3 fnt_size_11"><strong>' + results[i].rating+'</strong></span></div><div class="clear"></div></div>         <div class="row mar_t_5"><div class="grid_235">&nbsp;</div><div class="grid_745 pad_t_2"><a class="defult-button pad_l_5 pad_r_5 pad_t_2 pad_b_2" href="javascript:void(1)">View on Map</a></div><div class="clear"></div></div>         <div class="clear"></div>     </div>';
+                    /*                                        }
+                                                        }
+                                                    }
+                    								//console.log(content); 
+                                                });
+                    							//console.log(content);
+                    						$('#result').append('<div class="servicestMarker contentdata mouse_over font_size_12" id="servicestMarker' + i + '">         <div class="row"><div class="grid_235"><b>Name: </b></div><div class="grid_745">' + results[i].name + '</div><div class="clear"></div></div>         <div class="row"><div class="grid_235"><b>Address: </b></div><div class="grid_745">' + results[i].vicinity + '</div><div class="clear"></div></div>         <div class="row"><div class="grid_235"><b>Rating: </b></div><div class="grid_745 pad_t_2"><span class="text_color3 fnt_size_11"><strong>' + results[i].rating+'</strong></span></div><div class="clear"></div></div>         <div class="row mar_t_5"><div class="grid_235">&nbsp;</div><div class="grid_745 pad_t_2"><a class="defult-button pad_l_5 pad_r_5 pad_t_2 pad_b_2" href="javascript:void(1)">View on Map</a></div><div class="clear"></div></div>         <div class="clear"></div>     </div>');*/
+                    $('#result').append('<div class="servicestMarker contentdata mouse_over font_size_12" name="'+results[i].name+'"  id="servicestMarker_' + i + '">         <div class="row"><div class="grid_235"><b>Name: </b></div><div class="grid_745">' + results[i].name + '</div><div class="clear"></div></div>         <div class="row"><div class="grid_235"><b>Address: </b></div><div class="grid_745">' + results[i].vicinity + '</div><div class="clear"></div></div>         <div class="clear"></div>     </div>');
+                    $('#result').getScroll(); //poly.setPath([]);
+
+                    $('#result').animate({
+                        left: '2px'
+                    }, 100);
+                }
+                var t = true;
+                for (i in settings.servicesMarker) {
+                    google.maps.event.addListener(settings.servicesMarker[i], 'click', function() {
+                        settings.poly.setPath([]);
+                        settings.poly.setMap(null);
+                        var Name = this.name;
+                        $('#get_result .serviceDetails').remove();
+                        settings.infowindow.close();
+                        settings.poly.setOptions({
+                            strokeWeight: 3
+                        });
+
+                        //console.log(this.title);
+                        settings.service.route({
+                            origin: latlng,
+                            destination: new google.maps.LatLng(this.position.A.toString(), this.position.F.toString()),
+                            travelMode: google.maps.DirectionsTravelMode.WALKING
+                        }, function(result, status) {
+                            if (status == google.maps.DirectionsStatus.OK) {
+                                for (var i = 0, len = result.routes[0].overview_path.length; i < len; i++) {
+                                    settings.path = settings.poly.getPath()
+                                    settings.path.push(result.routes[0].overview_path[i]);
+                                    settings.poly.setMap(settings.map);
+                                }
+                            }
+                        });
+                        var textData = '';
+                        settings.distanceService.getDistanceMatrix({
+                            origins: [latlng],
+                            destinations: [new google.maps.LatLng(this.position.A.toString(), this.position.F.toString())],
+                            travelMode: google.maps.TravelMode.WALKING,
+                            unitSystem: google.maps.UnitSystem.METRIC,
+/*							optimizeWaypoints:true,
+                            avoidHighways: true,
+                            avoidTolls: true*/
+                        }, function(response, status) {
+                            if (status == google.maps.DistanceMatrixStatus.OK) {
+                                var origins = response.originAddresses;
+                                var destinations = response.destinationAddresses;
+                                for (var i = 0; i < origins.length; i++) {
+                                    var results = response.rows[i].elements;
+                                    for (var j = 0; j < results.length; j++) {
+										var dura = parseInt(results[j].duration.text);
+										var carDura = (dura/4)-1;
+                                        textData += "<br><b>Name: </b>" + Name + "<br><b>Distance: </b>" + results[j].distance.text + "<br><b>Duration: </b>" + carDura + ' mins By Car &amp; ' +  dura + ' mins walking distance</div>'; 
+                                        settings.infowindow.setContent(textData);
+                                        $('#get_result').append('<div style="font-size:13px;width:250px;" class="serviceDetails">' + textData + '</div>');
+                                        $('#get_result').animate({
+                                            bottom: '-30px'
+                                        }, 600);
+                                    }
+                                }
+                            }
+                        });
+                        //settings.infowindow.open(settings.map, this);
+
+                    });
+                    
+                }
+				var servicestMarker = document.querySelectorAll('.servicestMarker');
+                    for (var i = 0; i < servicestMarker.length; i++) {
+                        servicestMarker[i].addEventListener('click', function() {
+                            ID = this.id;
+							var Name = $(this).attr('name'); 
+							//console.log(Name);
+                            for (var d in settings.servicesMarker) {
+                                var markerID = settings.servicesMarker[d].title;
+								
+                                if (markerID == ID) {
+									
+                                    settings.poly.setPath([]);
+                                    settings.poly.setMap(null);
+                                    //var Name = this.name;
+                                    $('#get_result .serviceDetails').remove();
+                                    settings.infowindow.close();
+                                    settings.poly.setOptions({
+                                        strokeWeight: 3
+                                    });
+
+                                    //console.log(this.title);
+									
+                                    settings.service.route({
+                                        origin: latlng,
+                                        destination: new google.maps.LatLng(settings.servicesMarker[d].position.A.toString(), settings.servicesMarker[d].position.F.toString()),
+                                        travelMode: google.maps.DirectionsTravelMode.DRIVING
+                                    }, function(result, status) {
+                                        if (status == google.maps.DirectionsStatus.OK) {
+                                            for (var i = 0, len = result.routes[0].overview_path.length; i < len; i++) {
+                                                settings.path = settings.poly.getPath()
+                                                settings.path.push(result.routes[0].overview_path[i]);
+                                                settings.poly.setMap(settings.map);
+                                            }
+                                        }
+                                    });
+                                    var textData = '';
+									
+                                    settings.distanceService.getDistanceMatrix({
+                                        origins: [latlng],
+                                        destinations: [new google.maps.LatLng(settings.servicesMarker[d].position.A.toString(), settings.servicesMarker[d].position.F.toString())],
+                                        travelMode: google.maps.TravelMode.WALKING,
+                                        unitSystem: google.maps.UnitSystem.METRIC,
+/*										optimizeWaypoints:true,
+                                        avoidHighways: true,
+                                        avoidTolls: true*/
+                                    }, function(response, status) {
+                                        if (status == google.maps.DistanceMatrixStatus.OK) {
+                                            var origins = response.originAddresses;
+                                            var destinations = response.destinationAddresses;
+                                            for (var i = 0; i < origins.length; i++) {
+                                                var results = response.rows[i].elements;
+                                                for (var j = 0; j < results.length; j++) {
+                                                    textData += "<br><b>Name: </b>" + Name + "<br><b>Distance: </b>" + results[j].distance.text + "<br><b>Duration: </b>" + results[j].duration.text + ' By Car &amp; ' + (parseInt(results[j].duration.text) * 4 + 1) + ' mins walking distance</div>';
+                                                    settings.infowindow.setContent(textData);
+                                                    $('#get_result').append('<div style="font-size:13px;width:250px;" class="serviceDetails">' + textData + '</div>');
+                                                    $('#get_result').animate({
+                                                        bottom: '-30px'
+                                                    }, 600);
+                                                }
+                                            }
+                                        }
+                                    });
+									return false;
+
+                                }
+                            }
+
+                            //settings.infowindow.open(settings.map, this);
+
+
+                        });
+                    }
+
+
+            }
+        });
+    };
+    $.fn.initApp.createMarker = function(opt) {
+        var settings = $.extend({
+            allServices: new google.maps.LatLng(28.410130, 77.344509),
+            icon: 'images/school.png',
+            name: 'DPS',
+            address: 'malviya Nagar, Delhi-110030',
+            servcesCounter: 1,
+            rating: 4.3,
+            setMark: true,
+            markersArray: [],
+            map: map
+        }, opt);
+        servicesMarker = new google.maps.Marker({
+            map: settings.map,
+            position: settings.allServices.geometry.location,
+            icon: settings.icon,
+            visible: true,
+            title: 'servicestMarker_' + settings.servcesCounter,
+            name: settings.allServices.name,
+            vicinity: settings.allServices.vicinity,
+        });
+        settings.markersArray.push(servicesMarker);
+        //console.log(settings.markersArray);
+    }
+
+    $.fn.getScroll = function(options) {
+        var settings = $.extend({
+            minHeight: 450
+        }, options);
+        return this.each(function() {
+            if (this.offsetHeight > settings.minHeight) {
+                $(this).perfectScrollbar({
+                    wheelPropagation: true,
+                }).addClass('overflowscroll');
+            }
+        });
+    };
+}(jQuery));
+(function($) {
+
+}(jQuery));
+
+function clearOverlays(markersArray) {
+    if (markersArray) {
+        for (i in markersArray) {
+            markersArray[i].setVisible(false)
+        }
+        markersArray.length = 0;
+    }
+}
+
+function showMap() {
+    $('#map').initApp({
+        address: '' + document.getElementById("address").value + ''
+    });
+}
